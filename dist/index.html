@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090f0d">
+  <meta name="description" content="3つの声部が、その場で音と光を編み続ける。端末内だけで動く、自律生成アンビエントの光背。">
+  <title>自律型光背 HALO — 音と光が、静かにめぐる</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip" href="#main">本文へ移動</a>
+  <header class="masthead">
+    <a class="brand" href="./" aria-label="自律型光背 ホーム"><span class="brand-symbol" aria-hidden="true">◉</span><span>光背 <small>HALO</small></span><span class="edition">自律生成</span></a>
+    <div class="header-actions"><span class="local-label"><i></i> 端末の中で、音をつくる</span><button id="about-open" class="text-button" aria-haspopup="dialog">しくみ <span aria-hidden="true">↗</span></button></div>
+  </header>
+
+  <main id="main">
+    <section class="introduction" aria-labelledby="title">
+      <p class="eyebrow">GENERATIVE AMBIENT <span>／ 自律生成アンビエント</span></p>
+      <h1 id="title">音と光が、<span>静かにめぐる。</span></h1>
+      <p class="intro-copy">呼吸する低音、ほどける和音、こぼれる倍音。<br>3つの周期が重なり、その場だけの光背を描きます。</p>
+    </section>
+
+    <div class="experience">
+      <section class="visual-section" aria-label="音の曼荼羅">
+        <div class="stage-top"><span><i class="status-dot" id="status-dot"></i> <span id="state-label">開始を待っています</span></span><span class="stage-count">12 SEMITONES <span>×</span> 7 OCTAVES</span></div>
+        <div class="mandala" id="mandala">
+          <canvas id="spectrum" role="img" aria-label="12時が主音。時計回りに半音ずつ、外側へ7オクターブの螺旋。実際に生成した音の周波数成分が千本の光になります。"></canvas>
+          <canvas id="geometry" aria-hidden="true"></canvas>
+          <div id="dial-labels" aria-hidden="true"></div>
+          <button id="center-button" class="center-button" aria-label="自律生成をはじめる"><span id="center-glyph">静</span><small id="center-caption">はじめる</small></button>
+        </div>
+        <div class="stage-bottom"><p id="visual-caption">待機中は和音の見本。開始すると、音に光が重なります。</p><span id="clock">00:00</span></div>
+      </section>
+
+      <section class="controls" aria-label="音と光の設定">
+        <div class="session-heading"><p class="eyebrow">YOUR MOMENT <span>／ いま、ここに</span></p><span id="world-badge">日本・五音</span></div>
+        <div class="presets" role="group" aria-label="音の気配">
+          <button type="button" data-preset="quiet" aria-pressed="false"><span aria-hidden="true">◌</span> 凪</button>
+          <button type="button" data-preset="breath" aria-pressed="true"><span aria-hidden="true">◎</span> 呼吸</button>
+          <button type="button" data-preset="stars" aria-pressed="false"><span aria-hidden="true">✧</span> 星明かり</button>
+        </div>
+        <p class="preset-description" id="preset-description">ゆったりした呼吸に、和音と煌めきが寄り添います。</p>
+
+        <div class="transport"><button id="start" class="primary-button"><span aria-hidden="true">▷</span> <span id="start-label">はじめる</span></button><button id="stop" class="stop-button" aria-label="すべての音を停止" disabled><span aria-hidden="true">■</span></button></div>
+        <div class="session-options"><label for="minutes">ひと息の長さ</label><select id="minutes"><option value="5">5分</option><option value="15" selected>15分</option><option value="30">30分</option><option value="60">60分</option><option value="0">時間を決めずに</option></select></div>
+        <p id="session-message" class="session-message" role="status" aria-live="polite">小さな音から、ゆっくり始まります。</p>
+
+        <div class="volume-row"><button id="mute" class="text-button" aria-pressed="false" aria-label="消音して光だけにする">音量</button><input id="volume" aria-label="音量" type="range" min="0" max="50" value="18"><output id="volume-value" for="volume">18%</output></div>
+
+        <div class="layers-title"><h2>重なりあう、3つの声</h2><span>LAYERS</span></div>
+        <div class="layers">
+          <label class="layer drone"><input id="layer-drone" type="checkbox" checked><span class="layer-symbol" aria-hidden="true">◯</span><span class="layer-copy"><strong>根音 <small>呼吸する土台</small></strong><span>12–20秒の周期</span></span><span class="layer-note" id="note-drone">—</span></label>
+          <label class="layer harmony"><input id="layer-harmony" type="checkbox" checked><span class="layer-symbol" aria-hidden="true">△</span><span class="layer-copy"><strong>和声 <small>光の骨格</small></strong><span>4–8秒ごとに、1〜2音</span></span><span class="layer-note" id="note-harmony">—</span></label>
+          <label class="layer sparkle"><input id="layer-sparkle" type="checkbox" checked><span class="layer-symbol" aria-hidden="true">✧</span><span class="layer-copy"><strong>倍音 <small>余韻の粒子</small></strong><span>2–6秒ごとの、出会い</span></span><span class="layer-note" id="note-sparkle">—</span></label>
+        </div>
+
+        <details class="settings" open>
+          <summary>音と光をととのえる <span aria-hidden="true">＋</span></summary>
+          <div class="setting-grid"><label>世界の音階<select id="world"><option value="pentatonic">日本・五音</option><option value="india">インド風・五音</option><option value="arab">アラブ風・四分音</option></select></label><label>音の合わせ方<select id="tuning"><option value="just">純正律（整数比）</option><option value="equal">平均律（等しい間隔）</option></select></label></div>
+          <p class="setting-hint" id="world-description">ド・レ・ミ・ソ・ラ。余白のある、明るい五音。</p>
+          <div class="setting-grid"><label>12時の主音<select id="tonic"><option value="0">ド / C</option><option value="1">ド♯ / C♯</option><option value="2">レ / D</option><option value="3">ミ♭ / E♭</option><option value="4">ミ / E</option><option value="5">ファ / F</option><option value="6">ファ♯ / F♯</option><option value="7">ソ / G</option><option value="8">ソ♯ / G♯</option><option value="9">ラ / A</option><option value="10">シ♭ / B♭</option><option value="11">シ / B</option></select></label><label>基準の高さ<select id="a4"><option value="415">A4 = 415 Hz</option><option value="432">A4 = 432 Hz</option><option value="440" selected>A4 = 440 Hz</option><option value="442">A4 = 442 Hz</option></select></label></div>
+          <div class="range-setting"><label for="density">音の密度</label><input id="density" type="range" min="20" max="100" value="65"><output id="density-value" for="density">ほどよく</output></div>
+          <div class="range-setting"><label for="trail">光の余韻</label><input id="trail" type="range" min="12" max="30" value="20"><output id="trail-value" for="trail">2.0秒</output></div>
+        </details>
+        <div class="record-row"><span id="note-count">0 音を生成</span><button id="save-record" class="text-button">生成の記録を保存 <span aria-hidden="true">↓</span></button></div>
+      </section>
+    </div>
+
+    <footer class="footer"><p>楽譜のない、ひとつの光背。<span>音はすべてこの端末で合成します。マイクは使いません。</span></p><a href="https://fenom6.github.io/Halo/" target="_blank" rel="noopener noreferrer">原作 光背 HALO <span aria-hidden="true">↗</span></a></footer>
+  </main>
+
+  <dialog id="about" aria-labelledby="about-title"><button id="about-close" class="dialog-close" aria-label="説明を閉じる">×</button><p class="eyebrow">ABOUT THIS HALO</p><h2 id="about-title">耳で聴く和音を、目でたどる。</h2><p>原作「光背 HALO」の、1周＝1オクターブの螺旋と千本の光を使っています。12時が主音、時計回りに半音ずつ。低い音は内側、高い音は外側です。</p><h3>楽譜のかわりに、3つの小さな決まり。</h3><p>低音は12〜20秒かけて呼吸し、2〜4分ごとに主音・五度・四度のいずれかへ重心を移します。和声は4〜8秒ごとに、直前の和音に応じた確率で次の1〜2音を選びます。高音は2〜6秒ごとに、音階や整数倍の倍音から、密度に応じて鳴ります。</p><p>純正律は、周波数を 5:4 や 3:2 などの比で合わせる方法です。倍音のうなりを減らせますが、光が完全に静止するとは限りません。インド風・アラブ風は音階を参考にした簡易モデルで、伝統音楽の演奏を再現するものではありません。四分音の位置は純正律を選んでも24等分のまま保ちます。</p><h3>任せる範囲と、止まる仕組み。</h3><p>利用者が開始した間だけ、音の観測→次の音の選択→発音を繰り返します。同時発音は最大16音。画面を離れたとき、時間が来たとき、音声や処理が中断したときは停止し、利用者の操作を待ちます。これはブラウザー内の自律生成試作で、外部のTAS実行器とは未接続です。</p><p>「時間を決めずに」も画面が開いている間だけ動きます。乱数によって変化しますが、音の組み合わせが絶対に繰り返さないことは保証しません。設定だけを端末内に保存し、生成記録は保存ボタンを押したときだけファイルにします。</p><p class="credits"><a href="vendor/halo/LICENSE" target="_blank" rel="noopener">HALO / Copyright © 2026 Fenom6 / MIT License</a></p></dialog>
+  <noscript><p class="no-script">自律生成には JavaScript が必要です。ブラウザーで有効にして再読み込みしてください。</p></noscript>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

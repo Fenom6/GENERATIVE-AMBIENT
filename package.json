@@ -1,0 +1,13 @@
+{
+  "name": "halo-autonomous",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "音と光を3声部で生成する、端末内だけの自律型光背",
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node tools/check.mjs"
+  },
+  "engines": { "node": ">=22" }
+}

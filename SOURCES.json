@@ -1,0 +1,15 @@
+{
+  "upstream": "https://github.com/Fenom6/Halo",
+  "reference_page": "https://fenom6.github.io/Halo/",
+  "revision": "b7e4f85223494efb376fa64073a4a350683f8267",
+  "retrieved": "2026-11-06",
+  "license": "MIT",
+  "files": [
+    { "upstream": "LICENSE", "local": "dist/vendor/halo/LICENSE", "git_blob": "6cc792f979c229a592513ff5f25afdf9dc5bcd84" },
+    { "upstream": "js/colormap.js", "local": "dist/vendor/halo/colormap.js", "git_blob": "07d435ac9a06c72677843bd40e1678e2d8ec4ff9" },
+    { "upstream": "js/dsp.js", "local": "dist/vendor/halo/dsp.js", "git_blob": "8ad2f2bba69a21fdd708ae7ffa7967da90f81db9" },
+    { "upstream": "js/i18n.js", "local": "dist/vendor/halo/i18n.js", "git_blob": "ba392bd2b6adc8adafe28450c4ed1fcd3305ed66" },
+    { "upstream": "js/kouhai.js", "local": "dist/vendor/halo/kouhai.js", "git_blob": "6a610170a701517e3053791200de2059bd5c78cc" },
+    { "upstream": "js/tuning.js", "local": "dist/vendor/halo/tuning.js", "git_blob": "40f29f879a6fadcecd8ad2c58bccaffa97906ea4" }
+  ]
+}
