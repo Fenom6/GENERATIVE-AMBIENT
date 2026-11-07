@@ -1,7 +1,7 @@
 import { midiToTurn, spiralPoint, syncSpiral } from '../vendor/halo/kouhai.js';
 import { TimedKouhaiView } from './timed-kouhai.js';
 import { buildLut } from '../vendor/halo/colormap.js';
-import { setTuning, pcName, isAccidental, describe } from '../vendor/halo/tuning.js';
+import { setTuning, pcName, isAccidental, describe, tuning } from '../vendor/halo/tuning.js';
 import { WORLDS, rootFrequency, hzMidi, intervalRatio, fitFrequency } from './music.js';
 
 const COLORS = { drone: '#d9c998', harmony: '#b5cfba', sparkle: '#b2b4ce' };
@@ -125,5 +125,42 @@ export class HaloView {
   noteText(hz) {
     const note = describe(hz);
     return note ? `${note.name}${note.octave}` : '—';
+  }
+
+  /** いまの描画を、画像として共有できる横長の1枚へ書き出す。録音はしない。 */
+  exportMoment({ running = false, description = '' } = {}) {
+    if (!this.view.w || !this.canvas.width) return null;
+    const result = document.createElement('canvas');
+    result.width = 1200; result.height = 630;
+    const g = result.getContext('2d'), x = 35, y = 35, size = 560;
+    g.fillStyle = '#090f0d'; g.fillRect(0, 0, 1200, 630);
+    g.drawImage(this.canvas, x, y, size, size);
+    g.drawImage(this.overlay, x, y, size, size);
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    for (let k = 0; k < 12; k++) {
+      const angle = k * Math.PI / 6 - Math.PI / 2, pc = tuning.tonic + k;
+      g.fillStyle = k === 0 ? '#d9c998' : '#a1b09e';
+      g.font = `${isAccidental(pc) ? 13 : 18}px "Yu Gothic UI", sans-serif`;
+      g.fillText(pcName(pc), x + size / 2 + Math.cos(angle) * size * 0.465, y + size / 2 + Math.sin(angle) * size * 0.465);
+    }
+    g.fillStyle = '#090f0d'; g.beginPath(); g.arc(x + size / 2, y + size / 2, size * 0.095, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#d9c998'; g.font = '38px "Yu Mincho", serif';
+    g.fillText(running ? '息' : '静', x + size / 2, y + size / 2 - 7);
+    g.fillStyle = '#93a497'; g.font = '12px "Yu Gothic UI", sans-serif';
+    g.fillText(running ? '生成中' : '待機中', x + size / 2, y + size / 2 + 27);
+    g.textAlign = 'left';
+    g.fillStyle = '#b5cfba'; g.font = '16px "Yu Gothic UI", sans-serif';
+    g.fillText('自律生成アンビエント', 650, 90);
+    g.fillStyle = '#eeeadd'; g.font = '54px "Yu Mincho", serif';
+    g.fillText('光背 HALO', 650, 157);
+    g.font = '34px "Yu Mincho", serif';
+    g.fillText('音と光が、', 650, 244); g.fillText('静かにめぐる。', 650, 296);
+    g.fillStyle = '#a1b09e'; g.font = '20px "Yu Gothic UI", sans-serif';
+    g.fillText('呼吸する低音、ほどける和音、', 650, 371); g.fillText('こぼれる倍音。', 650, 405);
+    g.fillStyle = '#d9c998'; g.font = '18px "Yu Gothic UI", sans-serif';
+    g.fillText(description, 650, 485);
+    g.fillStyle = '#93a497'; g.font = '14px sans-serif';
+    g.fillText('fenom6.github.io/GENERATIVE-AMBIENT/', 650, 562);
+    return result;
   }
 }
