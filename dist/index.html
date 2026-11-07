@@ -64,6 +64,12 @@
           <div class="setting-grid"><label>12時の主音<select id="tonic"><option value="0">ド / C</option><option value="1">ド♯ / C♯</option><option value="2">レ / D</option><option value="3">ミ♭ / E♭</option><option value="4">ミ / E</option><option value="5">ファ / F</option><option value="6">ファ♯ / F♯</option><option value="7">ソ / G</option><option value="8">ソ♯ / G♯</option><option value="9">ラ / A</option><option value="10">シ♭ / B♭</option><option value="11">シ / B</option></select></label><label>基準の高さ<select id="a4"><option value="415">A4 = 415 Hz</option><option value="432">A4 = 432 Hz</option><option value="440" selected>A4 = 440 Hz</option><option value="442">A4 = 442 Hz</option></select></label></div>
           <div class="range-setting"><label for="density">音の密度</label><input id="density" type="range" min="20" max="100" value="65"><output id="density-value" for="density">ほどよく</output></div>
           <div class="range-setting"><label for="trail">光の余韻</label><input id="trail" type="range" min="12" max="30" value="20"><output id="trail-value" for="trail">2.0秒</output></div>
+          <div class="mobile-options">
+            <label><input id="media-playback" type="checkbox" checked> 音楽として再生（対応端末）</label>
+            <p id="playback-status" class="setting-hint"></p>
+            <label><input id="keep-awake" type="checkbox"> 再生中は画面を点けたままにする</label>
+            <p id="wake-status" class="setting-hint" role="status" aria-live="polite"></p>
+          </div>
         </details>
         <div class="record-row"><span id="note-count">0 音を生成</span><button id="save-record" class="text-button">生成の記録を保存 <span aria-hidden="true">↓</span></button></div>
       </section>
