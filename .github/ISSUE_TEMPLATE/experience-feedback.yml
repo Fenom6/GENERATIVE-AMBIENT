@@ -1,0 +1,34 @@
+name: 聴き心地・使い心地
+description: 実際に使って気づいた音や操作の感想を伝える
+title: "[フィードバック] "
+body:
+  - type: dropdown
+    id: experience
+    attributes:
+      label: どこまで試しましたか？
+      options:
+        - 音を聴き、画面も操作した
+        - 画面だけ確認した
+        - 音が出なかった／開始できなかった
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 端末・OS・ブラウザー
+      description: 分かる範囲で、機種や版を記入してください。
+      placeholder: iPhone / iOS / Safari、Windows / Chrome など
+    validations:
+      required: true
+  - type: textarea
+    id: settings
+    attributes:
+      label: 使った設定
+      description: プリセット、音量、音階、調律、音楽再生モードや画面点灯維持の設定。
+  - type: textarea
+    id: feedback
+    attributes:
+      label: 気づいたこと・好み・困ったこと
+      description: 操作と、実際に起きたことを教えてください。音声の録音の添付は不要です。
+    validations:
+      required: true

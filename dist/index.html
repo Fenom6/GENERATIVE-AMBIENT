@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#090f0d">
   <meta name="description" content="3つの声部が、その場で音と光を編み続ける。端末内だけで動く、自律生成アンビエントの光背。">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="光背 HALO — 音と光が、静かにめぐる。">
+  <meta property="og:description" content="呼吸する低音、ほどける和音、こぼれる倍音。その場だけの音と光を、この端末で。">
+  <meta property="og:url" content="https://fenom6.github.io/GENERATIVE-AMBIENT/">
+  <meta property="og:image" content="https://fenom6.github.io/GENERATIVE-AMBIENT/assets/halo-preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="自律生成中の光背。音の高さを螺旋に並べた光と和音の線。">
+  <meta name="twitter:card" content="summary_large_image">
   <title>自律型光背 HALO — 音と光が、静かにめぐる</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
@@ -24,32 +33,34 @@
     </section>
 
     <div class="experience">
+      <section class="controls session-controls" aria-label="再生操作">
+        <div class="session-heading"><p class="eyebrow">YOUR MOMENT <span>／ いま、ここに</span></p><span id="world-badge">日本・五音</span></div>
+        <div class="presets" role="group" aria-label="過ごし方から音を選ぶ">
+          <button type="button" data-preset="quiet" aria-pressed="false"><span aria-hidden="true">◌</span> 凪<small>集中したいとき</small></button>
+          <button type="button" data-preset="breath" aria-pressed="true"><span aria-hidden="true">◎</span> 呼吸<small>くつろぎたいとき</small></button>
+          <button type="button" data-preset="stars" aria-pressed="false"><span aria-hidden="true">✧</span> 星明かり<small>光を楽しみたいとき</small></button>
+        </div>
+        <p class="preset-description" id="preset-description">ゆったりした呼吸に、和音と煌めきが寄り添います。</p>
+        <div class="transport"><button id="start" class="primary-button" aria-describedby="listening-hint playback-limit"><span id="start-icon" aria-hidden="true">▷</span> <span id="start-label">音と光をはじめる</span></button></div>
+        <p id="listening-hint" class="listening-hint">小さな音から。イヤホン・ヘッドホンでも楽しめます。</p>
+        <div class="session-options"><label for="minutes">ひと息の長さ</label><select id="minutes"><option value="5">5分</option><option value="15" selected>15分</option><option value="30">30分</option><option value="60">60分</option><option value="0">時間を決めずに</option></select></div>
+        <p id="session-message" class="session-message" role="status" aria-live="polite">上のボタンを押すと、音と光がゆっくり始まります。</p>
+        <div class="volume-row"><label for="volume">音量</label><input id="volume" aria-label="音量（%）" type="range" min="0" max="50" value="18"><output id="volume-value" for="volume" aria-label="現在の音量">18%</output><button id="mute" class="text-button" aria-pressed="false" aria-label="消音して光だけにする">消音</button></div>
+        <p id="playback-limit" class="playback-limit">この画面を開いている間だけ再生します。<br>画面を消す・別のタブへ移ると停止します。</p>
+      </section>
+
       <section class="visual-section" aria-label="音の曼荼羅">
         <div class="stage-top"><span><i class="status-dot" id="status-dot"></i> <span id="state-label">開始を待っています</span></span><span class="stage-count">12 SEMITONES <span>×</span> 7 OCTAVES</span></div>
         <div class="mandala" id="mandala">
           <canvas id="spectrum" role="img" aria-label="12時が主音。時計回りに半音ずつ、外側へ7オクターブの螺旋。実際に生成した音の周波数成分が千本の光になります。"></canvas>
           <canvas id="geometry" aria-hidden="true"></canvas>
           <div id="dial-labels" aria-hidden="true"></div>
-          <button id="center-button" class="center-button" aria-label="自律生成をはじめる"><span id="center-glyph">静</span><small id="center-caption">はじめる</small></button>
+          <div class="center-mark" aria-hidden="true"><span id="center-glyph">静</span><small id="center-caption">待機中</small></div>
         </div>
         <div class="stage-bottom"><p id="visual-caption">待機中は和音の見本。開始すると、音に光が重なります。</p><span id="clock">00:00</span></div>
       </section>
 
-      <section class="controls" aria-label="音と光の設定">
-        <div class="session-heading"><p class="eyebrow">YOUR MOMENT <span>／ いま、ここに</span></p><span id="world-badge">日本・五音</span></div>
-        <div class="presets" role="group" aria-label="音の気配">
-          <button type="button" data-preset="quiet" aria-pressed="false"><span aria-hidden="true">◌</span> 凪</button>
-          <button type="button" data-preset="breath" aria-pressed="true"><span aria-hidden="true">◎</span> 呼吸</button>
-          <button type="button" data-preset="stars" aria-pressed="false"><span aria-hidden="true">✧</span> 星明かり</button>
-        </div>
-        <p class="preset-description" id="preset-description">ゆったりした呼吸に、和音と煌めきが寄り添います。</p>
-
-        <div class="transport"><button id="start" class="primary-button"><span aria-hidden="true">▷</span> <span id="start-label">はじめる</span></button><button id="stop" class="stop-button" aria-label="すべての音を停止" disabled><span aria-hidden="true">■</span></button></div>
-        <div class="session-options"><label for="minutes">ひと息の長さ</label><select id="minutes"><option value="5">5分</option><option value="15" selected>15分</option><option value="30">30分</option><option value="60">60分</option><option value="0">時間を決めずに</option></select></div>
-        <p id="session-message" class="session-message" role="status" aria-live="polite">小さな音から、ゆっくり始まります。</p>
-
-        <div class="volume-row"><button id="mute" class="text-button" aria-pressed="false" aria-label="消音して光だけにする">音量</button><input id="volume" aria-label="音量" type="range" min="0" max="50" value="18"><output id="volume-value" for="volume">18%</output></div>
-
+      <section class="controls detail-controls" aria-label="音と光の設定">
         <div class="layers-title"><h2>重なりあう、3つの声</h2><span>LAYERS</span></div>
         <div class="layers">
           <label class="layer drone"><input id="layer-drone" type="checkbox" checked><span class="layer-symbol" aria-hidden="true">◯</span><span class="layer-copy"><strong>根音 <small>呼吸する土台</small></strong><span>12–20秒の周期</span></span><span class="layer-note" id="note-drone">—</span></label>
@@ -57,13 +68,14 @@
           <label class="layer sparkle"><input id="layer-sparkle" type="checkbox" checked><span class="layer-symbol" aria-hidden="true">✧</span><span class="layer-copy"><strong>倍音 <small>余韻の粒子</small></strong><span>2–6秒ごとの、出会い</span></span><span class="layer-note" id="note-sparkle">—</span></label>
         </div>
 
-        <details class="settings" open>
-          <summary>音と光をととのえる <span aria-hidden="true">＋</span></summary>
-          <div class="setting-grid"><label>世界の音階<select id="world"><option value="pentatonic">日本・五音</option><option value="india">インド風・五音</option><option value="arab">アラブ風・四分音</option></select></label><label>音の合わせ方<select id="tuning"><option value="just">純正律（整数比）</option><option value="equal">平均律（等しい間隔）</option></select></label></div>
+        <details class="settings">
+          <summary>音と光をととのえる <span class="setting-option">好みで調整</span><span aria-hidden="true">＋</span></summary>
+          <p class="setting-hint">そのままでも楽しめます。気になるところだけ、少しずつ。</p>
+          <div class="setting-grid"><div><label for="world">世界の音階</label><select id="world" aria-describedby="world-help"><option value="pentatonic">日本・五音</option><option value="india">インド風・五音</option><option value="arab">アラブ風・四分音</option></select><p id="world-help" class="setting-hint">使う音の組み合わせです。</p></div><div><label for="tuning">音の合わせ方</label><select id="tuning" aria-describedby="tuning-help"><option value="just">純正律（整数比）</option><option value="equal">平均律（等しい間隔）</option></select><p id="tuning-help" class="setting-hint">音どうしをそろえる方法です。</p></div></div>
           <p class="setting-hint" id="world-description">ド・レ・ミ・ソ・ラ。余白のある、明るい五音。</p>
-          <div class="setting-grid"><label>12時の主音<select id="tonic"><option value="0">ド / C</option><option value="1">ド♯ / C♯</option><option value="2">レ / D</option><option value="3">ミ♭ / E♭</option><option value="4">ミ / E</option><option value="5">ファ / F</option><option value="6">ファ♯ / F♯</option><option value="7">ソ / G</option><option value="8">ソ♯ / G♯</option><option value="9">ラ / A</option><option value="10">シ♭ / B♭</option><option value="11">シ / B</option></select></label><label>基準の高さ<select id="a4"><option value="415">A4 = 415 Hz</option><option value="432">A4 = 432 Hz</option><option value="440" selected>A4 = 440 Hz</option><option value="442">A4 = 442 Hz</option></select></label></div>
-          <div class="range-setting"><label for="density">音の密度</label><input id="density" type="range" min="20" max="100" value="65"><output id="density-value" for="density">ほどよく</output></div>
-          <div class="range-setting"><label for="trail">光の余韻</label><input id="trail" type="range" min="12" max="30" value="20"><output id="trail-value" for="trail">2.0秒</output></div>
+          <div class="setting-grid"><div><label for="tonic">中心になる音（12時）</label><select id="tonic" aria-describedby="tonic-help"><option value="0">ド / C</option><option value="1">ド♯ / C♯</option><option value="2">レ / D</option><option value="3">ミ♭ / E♭</option><option value="4">ミ / E</option><option value="5">ファ / F</option><option value="6">ファ♯ / F♯</option><option value="7">ソ / G</option><option value="8">ソ♯ / G♯</option><option value="9">ラ / A</option><option value="10">シ♭ / B♭</option><option value="11">シ / B</option></select><p id="tonic-help" class="setting-hint">音楽の中心。光背の真上に置きます。</p></div><div><label for="a4">基準音の高さ</label><select id="a4" aria-describedby="a4-help"><option value="415">A4 = 415 Hz</option><option value="432">A4 = 432 Hz</option><option value="440" selected>A4 = 440 Hz</option><option value="442">A4 = 442 Hz</option></select><p id="a4-help" class="setting-hint">全体の高さの微調整。迷ったら440 Hzのままで。</p></div></div>
+          <div class="range-setting"><label for="density">音の重なり</label><input id="density" type="range" min="20" max="100" value="65" aria-describedby="density-help"><output id="density-value" for="density">ほどよく</output></div><p id="density-help" class="setting-hint">右へ動かすと、和音や高い音が増えます。</p>
+          <div class="range-setting"><label for="trail">光が残る長さ</label><input id="trail" type="range" min="12" max="30" value="20" aria-describedby="trail-help"><output id="trail-value" for="trail">2.0秒</output></div><p id="trail-help" class="setting-hint">音が変わったあとに残る、光の軌跡です。</p>
           <div class="mobile-options">
             <label><input id="media-playback" type="checkbox" checked> 音楽として再生（対応端末）</label>
             <p id="playback-status" class="setting-hint"></p>
@@ -71,7 +83,9 @@
             <p id="wake-status" class="setting-hint" role="status" aria-live="polite"></p>
           </div>
         </details>
-        <div class="record-row"><span id="note-count">0 音を生成</span><button id="save-record" class="text-button">生成の記録を保存 <span aria-hidden="true">↓</span></button></div>
+        <div class="record-row"><p id="note-count">生成した音：0音</p></div>
+        <div class="capture-actions"><button id="save-image" class="text-button">光背を画像に保存 <span aria-hidden="true">↓</span></button><button id="save-record" class="text-button">生成記録を保存 <span aria-hidden="true">↓</span></button></div>
+        <p id="capture-status" class="setting-hint" role="status" aria-live="polite"></p>
       </section>
     </div>
 

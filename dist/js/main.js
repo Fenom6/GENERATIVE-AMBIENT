@@ -21,9 +21,9 @@ let recent = [], trace = null, count = 0, mute = false;
 let frameHandle = null;
 let preset = 'breath';
 const PRESETS = {
-  quiet: { density: 0.3, description: '少ない音と長い余韻。静けさを聴くための、凪。' },
+  quiet: { density: 0.3, description: '集中したいときに。少ない音と長い余韻の、凪。' },
   breath: { density: 0.65, description: 'ゆったりした呼吸に、和音と煌めきが寄り添います。' },
-  stars: { density: 1, description: '高い音が少し多めに。星明かりのような、小さな出会い。' },
+  stars: { density: 1, description: '光を楽しみたいときに。高い音が少し多めの、星明かり。' },
 };
 
 function savePrefs() { try { localStorage.setItem(PREF_KEY, JSON.stringify(config)); } catch { /* 任意の保存 */ } }
@@ -72,14 +72,13 @@ function renderState() {
   const running = gate.state === 'running', starting = gate.state === 'starting';
   $('state-label').textContent = running ? '自律生成中' : starting ? '音を準備しています' : gate.state === 'idle' ? '開始を待っています' : '停止中';
   $('status-dot').classList.toggle('running', running);
-  $('session-message').textContent = gate.state === 'idle' ? '小さな音から、ゆっくり始まります。' : gate.reason;
-  $('start').disabled = running || starting;
-  $('stop').disabled = !running && !starting;
-  $('start-label').textContent = gate.state === 'idle' ? 'はじめる' : starting ? '準備中…' : running ? '生成しています' : 'もう一度、はじめる';
+  $('session-message').textContent = gate.state === 'idle' ? '上のボタンを押すと、音と光がゆっくり始まります。' : gate.reason;
+  $('start-icon').textContent = running || starting ? '■' : '▷';
+  $('start').classList.toggle('is-playing', running);
+  $('start-label').textContent = running ? '音と光をとめる' : starting ? '準備をやめる' : gate.state === 'idle' ? '音と光をはじめる' : '音と光をもう一度はじめる';
+  $('mandala').classList.toggle('is-running', running);
   $('center-glyph').textContent = running ? '息' : '静';
-  $('center-caption').textContent = running ? 'とめる' : starting ? '準備中' : 'はじめる';
-  $('center-button').disabled = starting;
-  $('center-button').setAttribute('aria-label', running ? '自律生成を停止する' : '自律生成をはじめる');
+  $('center-caption').textContent = running ? '生成中' : starting ? '準備中' : gate.state === 'idle' ? '待機中' : '停止中';
   $('visual-caption').textContent = running ? '音の高さが向きになり、和音が光の骨格になります。'
     : gate.state === 'idle' ? '待機中は和音の見本。開始すると、音に光が重なります。' : '静けさに戻りました。再開は、はじめるボタンから。';
   queueFrame();
@@ -93,7 +92,7 @@ function renderNotes(now) {
   }
   const seconds = Math.floor(gate.elapsed);
   $('clock').textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-  $('note-count').textContent = `${count} 音を生成`;
+  $('note-count').textContent = `生成した音：${count}音`;
 }
 
 function stop(reason = '停止しました。再開は、はじめるボタンから。', state = 'stopped') {
@@ -181,14 +180,15 @@ async function start() {
   }
 }
 
-$('start').addEventListener('click', () => void start());
-$('stop').addEventListener('click', () => stop());
-$('center-button').addEventListener('click', () => gate.state === 'running' ? stop() : void start());
+$('start').addEventListener('click', () => {
+  if (gate.state === 'running' || gate.state === 'starting') stop();
+  else void start();
+});
 $('mute').addEventListener('click', () => {
   mute = !mute; audio?.setMuted(mute);
   $('mute').setAttribute('aria-pressed', String(mute));
   $('mute').setAttribute('aria-label', mute ? '消音を解除する' : '消音して光だけにする');
-  $('mute').textContent = mute ? '消音中' : '音量';
+  $('mute').textContent = mute ? '消音中' : '消音';
   renderConfig();
 });
 
@@ -245,12 +245,28 @@ for (const button of document.querySelectorAll('[data-preset]')) button.addEvent
 
 $('about-open').addEventListener('click', () => $('about').showModal());
 $('about-close').addEventListener('click', () => $('about').close());
+function downloadFile(blob, name) {
+  const url = URL.createObjectURL(blob), anchor = document.createElement('a');
+  anchor.href = url; anchor.download = name; anchor.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$('save-image').addEventListener('click', async () => {
+  $('save-image').disabled = true;
+  try {
+    const image = view.exportMoment({ running: gate.state === 'running',
+      description: `${WORLDS[config.world].name} / ${config.tuning === 'just' ? '純正律' : '平均律'} / ${$('clock').textContent}` });
+    if (!image) throw new Error('Image is not ready');
+    const blob = await new Promise((resolve) => image.toBlob(resolve, 'image/png'));
+    if (!blob) throw new Error('Image encoding failed');
+    downloadFile(blob, `halo-moment-${new Date().toISOString().replaceAll(':', '-')}.png`);
+    $('capture-status').textContent = '光背の画像の保存を開始しました。';
+  } catch { $('capture-status').textContent = '画像を作れませんでした。もう一度お試しください。'; }
+  finally { $('save-image').disabled = false; }
+});
 $('save-record').addEventListener('click', () => {
   const record = trace ? { ...trace, elapsed: gate.elapsed, state: gate.state, savedAt: new Date().toISOString() }
     : { format: 'halo-autonomous.trace.v1', settings: config, state: gate.state, totalEvents: 0, events: [] };
-  const url = URL.createObjectURL(new Blob([JSON.stringify(record, null, 2)], { type: 'application/json' }));
-  const anchor = document.createElement('a'); anchor.href = url; anchor.download = `halo-${new Date().toISOString().replaceAll(':', '-')}.json`;
-  anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadFile(new Blob([JSON.stringify(record, null, 2)], { type: 'application/json' }), `halo-${new Date().toISOString().replaceAll(':', '-')}.json`);
 });
 
 document.addEventListener('visibilitychange', () => {

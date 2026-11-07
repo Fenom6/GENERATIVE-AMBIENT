@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process';
 
 export const ROOT = fileURLToPath(new URL('../dist/', import.meta.url));
 const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.json': 'application/json; charset=utf-8' };
+  '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json; charset=utf-8' };
 
 export async function createStaticServer(root = ROOT) {
   const resolvedRoot = await realpath(root);
