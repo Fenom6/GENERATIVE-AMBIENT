@@ -1,4 +1,5 @@
 /** 音の選択だけを担当。時刻と種が同じなら、同じ判断を再現できる。 */
+import { baseMidi } from '../vendor/halo/tuning.js';
 export const WORLDS = Object.freeze({
   pentatonic: {
     name: '日本・五音', naming: 'ja', quarter: false,
@@ -21,6 +22,7 @@ export const DEFAULTS = Object.freeze({
   world: 'pentatonic', tuning: 'just', tonic: 0, a4: 440,
   density: 0.65, trail: 2, volume: 0.18, minutes: 15,
   layers: Object.freeze({ drone: true, harmony: true, sparkle: true }),
+  mediaPlayback: true, keepAwake: false,
 });
 
 const clamp = (value, low, high, fallback) => Number.isFinite(Number(value))
@@ -36,6 +38,8 @@ export function settings(input = {}) {
     trail: clamp(input.trail, 1.2, 3, DEFAULTS.trail),
     volume: clamp(input.volume, 0, 0.5, DEFAULTS.volume),
     minutes: [0, 5, 15, 30, 60].includes(Number(input.minutes)) ? Number(input.minutes) : DEFAULTS.minutes,
+    mediaPlayback: typeof input.mediaPlayback === 'boolean' ? input.mediaPlayback : DEFAULTS.mediaPlayback,
+    keepAwake: typeof input.keepAwake === 'boolean' ? input.keepAwake : DEFAULTS.keepAwake,
     layers: Object.fromEntries(Object.keys(DEFAULTS.layers).map((key) => [key,
       typeof input.layers?.[key] === 'boolean' ? input.layers[key] : true])),
   };
@@ -71,6 +75,12 @@ export function fitFrequency(hz, lowMidi, highMidi, a4 = 440) {
   return hz;
 }
 
+/** 低音も光背も、同じ主音を1周目の始まりにする。 */
+export function rootFrequency(config, offset = 0) {
+  const low = baseMidi(config.tonic);
+  return fitFrequency(midiHz(low, config.a4) * intervalRatio(offset, config.tuning), low, low + 12, config.a4);
+}
+
 // マルコフ連鎖：いまの和音ごとに、次の和音を選ぶ重みが異なる。
 const TRANSITIONS = [[1, 4, 2, 1], [3, 1, 4, 2], [4, 2, 1, 3], [3, 4, 2, 1]];
 function weighted(weights, random) {
@@ -92,8 +102,7 @@ export class AmbientPlanner {
   range(min, max) { return min + this.random() * (max - min); }
 
   rootHz() {
-    const { tonic, tuning, a4 } = this.config;
-    return fitFrequency(midiHz(36 + tonic, a4) * intervalRatio(this.rootOffset, tuning), 36, 48, a4);
+    return rootFrequency(this.config, this.rootOffset);
   }
 
   event(layer, hz, at, duration, interval = 0, source = '音階') {

@@ -1,7 +1,8 @@
-import { KouhaiView, midiToTurn, spiralPoint, syncSpiral } from '../vendor/halo/kouhai.js';
+import { midiToTurn, spiralPoint, syncSpiral } from '../vendor/halo/kouhai.js';
+import { TimedKouhaiView } from './timed-kouhai.js';
 import { buildLut } from '../vendor/halo/colormap.js';
 import { setTuning, pcName, isAccidental, describe } from '../vendor/halo/tuning.js';
-import { WORLDS, midiHz, hzMidi, intervalRatio, fitFrequency } from './music.js';
+import { WORLDS, rootFrequency, hzMidi, intervalRatio, fitFrequency } from './music.js';
 
 const COLORS = { drone: '#d9c998', harmony: '#b5cfba', sparkle: '#b2b4ce' };
 
@@ -10,7 +11,7 @@ export class HaloView {
     this.canvas = spectrum;
     this.overlay = geometry;
     this.labels = labels;
-    this.view = new KouhaiView(spectrum);
+    this.view = new TimedKouhaiView(spectrum);
     this.context = geometry.getContext('2d');
     this.view.setPalette(buildLut(['#14221a', '#536545', '#9eaf7b', '#d5c98f', '#f2e8c0']), {
       bg: '#090f0d', grid: '#233329', ink: '#eeeadd', muted: '#61765f', mark: '#b5cfba', gold: '#d9c998',
@@ -26,18 +27,18 @@ export class HaloView {
   configure(config, sampleRate = 48000) {
     const world = WORLDS[config.world];
     this.layers = config.layers;
-    const root = fitFrequency(midiHz(36 + config.tonic, config.a4), 36, 48, config.a4);
+    const root = rootFrequency(config);
     this.preview = [
       { id: -1, layer: 'drone', midi: hzMidi(root), at: 0, duration: 100 },
       ...world.chords[0].map((interval, i) => ({ id: -2 - i, layer: 'harmony',
         midi: hzMidi(fitFrequency(root * 2 * intervalRatio(interval, config.tuning), 48, 72, config.a4)), at: 0, duration: 100 })),
-      { id: -4, layer: 'sparkle', midi: hzMidi(root * 8), at: 0, duration: 100 },
+      { id: -4, layer: 'sparkle', midi: hzMidi(fitFrequency(root * 8, 72, 96, config.a4)), at: 0, duration: 100 },
     ];
     setTuning({ a4: config.a4, tonic: config.tonic, naming: world.naming, quarter: world.quarter });
     syncSpiral();
     this.view.configure({ sampleRate, fftSize: 16384, minDb: -100, maxDb: -20 });
     this.trail = config.trail;
-    this.view.setTrail(config.trail * 60);
+    this.view.setTrailSeconds(config.trail);
     this.labels.replaceChildren();
     for (let index = 0; index < 12; index++) {
       const label = document.createElement('span'), pc = (config.tonic + index) % 12;
@@ -68,6 +69,8 @@ export class HaloView {
 
   frame(audio, elapsed, dt, running) {
     if (!this.view.w) return;
+    this.view.setTrailSeconds(this.trail);
+    this.view.setTime(elapsed);
     const data = running && audio ? audio.spectrumData() : { slow: this.silence, fast: null };
     const active = this.events.filter((event) => elapsed <= event.at + event.duration);
     const notes = ['drone', 'harmony', 'sparkle'].map((layer) => active.findLast((event) => event.layer === layer)?.midi ?? null);

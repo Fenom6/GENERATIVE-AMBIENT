@@ -2,6 +2,7 @@ import { DEFAULTS, WORLDS, AmbientPlanner, settings } from './music.js';
 import { AmbientAudio } from './audio.js';
 import { SessionGate } from './session.js';
 import { HaloView } from './view.js';
+import { PlaybackSession, ScreenAwake } from './mobile.js';
 
 const $ = (id) => document.getElementById(id);
 const time = () => performance.now() / 1000;
@@ -9,6 +10,11 @@ const PREF_KEY = 'halo-autonomous.settings.v1';
 let config = settings(DEFAULTS);
 try { config = settings(JSON.parse(localStorage.getItem(PREF_KEY)) || DEFAULTS); } catch { /* 保存できなくても利用できる */ }
 const gate = new SessionGate();
+const playback = new PlaybackSession(navigator, () => {
+  if (gate.state === 'running' || gate.state === 'starting') stop('ほかの音声処理で中断されたため停止しました。', 'paused');
+});
+const screen = new ScreenAwake(navigator,
+  () => config.keepAwake && gate.state === 'running' && !document.hidden, renderMobile);
 const view = new HaloView($('spectrum'), $('geometry'), $('dial-labels'));
 let audio = null, planner = null, timer = null, lastTick = 0, lastFrame = 0;
 let recent = [], trace = null, count = 0, mute = false;
@@ -21,6 +27,29 @@ const PRESETS = {
 };
 
 function savePrefs() { try { localStorage.setItem(PREF_KEY, JSON.stringify(config)); } catch { /* 任意の保存 */ } }
+
+function renderMobile() {
+  $('media-playback').checked = config.mediaPlayback;
+  $('media-playback').disabled = !playback.supported;
+  $('keep-awake').checked = config.keepAwake;
+  $('keep-awake').disabled = !screen.supported;
+  $('playback-status').textContent = playback.state === 'restore-failed' ? '音声設定を元に戻せたか確認できません。'
+    : !playback.supported ? 'このブラウザーでは通常の音声設定で再生します。'
+    : playback.state === 'unavailable' ? '音楽用の設定を利用できません。通常の音声設定で再生します。'
+    : config.mediaPlayback ? '対応端末ではマナーモード中も再生します。他の音楽が止まる場合があります。'
+    : 'ブラウザーの通常の音声設定で再生します。';
+  const states = {
+    active: '再生中だけ、画面が自動で消えないようにしています。',
+    requesting: '画面点灯の維持を要求しています。',
+    releasing: '画面点灯の維持を解除しています。',
+    unavailable: '画面点灯を維持できません。画面が消えると停止します。',
+    released: '端末が画面点灯の維持を解除しました。画面が消えると停止します。',
+    'release-failed': '画面点灯の維持を解除できたか確認できません。',
+  };
+  $('wake-status').textContent = states[screen.state] ?? (!screen.supported
+    ? 'このブラウザーは画面点灯の維持に対応していません。'
+    : '再生中のみ有効です。画面を離れたら音は停止し、自動で再開しません。');
+}
 
 function renderConfig() {
   for (const key of ['world', 'tuning', 'tonic', 'a4', 'minutes']) $(key).value = config[key];
@@ -35,6 +64,7 @@ function renderConfig() {
   $('world-description').textContent = WORLDS[config.world].description;
   for (const button of document.querySelectorAll('[data-preset]')) button.setAttribute('aria-pressed', String(button.dataset.preset === preset));
   $('preset-description').textContent = PRESETS[preset]?.description ?? '音の重なりを、好みの密度にととのえています。';
+  renderMobile();
   queueFrame();
 }
 
@@ -80,6 +110,9 @@ function stop(reason = '停止しました。再開は、はじめるボタン�
   if (previous) void previous.close().catch(() => {
     $('session-message').textContent = '音の出口は閉じましたが、音声処理の終了を確認できませんでした。';
   });
+  playback.stop();
+  void screen.release();
+  renderMobile();
 }
 
 function tick() {
@@ -114,6 +147,9 @@ async function start() {
   const candidate = new AmbientAudio();
   audio = candidate;
   try {
+    playback.start(config.mediaPlayback);
+    renderMobile();
+    if (gate.revision !== revision) { await candidate.close(); return; }
     const opened = await candidate.open(config);
     if (!opened || document.hidden || !gate.confirm(revision)) {
       await candidate.close();
@@ -134,7 +170,10 @@ async function start() {
     });
     lastTick = time();
     tick();
-    if (gate.state === 'running') timer = setInterval(tick, 250);
+    if (gate.state === 'running') {
+      timer = setInterval(tick, 250);
+      if (config.keepAwake) void screen.request();
+    }
     renderState();
   } catch {
     if (gate.revision === revision) stop('音を開始できませんでした。対応ブラウザーで、もう一度開始してください。', 'paused');
@@ -160,6 +199,18 @@ for (const key of ['world', 'tuning', 'tonic', 'a4']) $(key).addEventListener('c
   renderConfig(); savePrefs();
 });
 $('minutes').addEventListener('change', () => { config = settings({ ...config, minutes: $('minutes').value }); savePrefs(); });
+$('media-playback').addEventListener('change', () => {
+  const enabled = $('media-playback').checked;
+  if (gate.state === 'running' || gate.state === 'starting') stop('音声設定を変えたため停止しました。もう一度はじめると反映します。');
+  config = settings({ ...config, mediaPlayback: enabled });
+  renderMobile(); savePrefs();
+});
+$('keep-awake').addEventListener('change', () => {
+  config = settings({ ...config, keepAwake: $('keep-awake').checked });
+  if (!config.keepAwake) void screen.release();
+  else if (gate.state === 'running') void screen.request();
+  renderMobile(); savePrefs();
+});
 $('volume').addEventListener('input', () => {
   config = settings({ ...config, volume: Number($('volume').value) / 100 });
   audio?.setVolume(config.volume); renderConfig(); savePrefs();
@@ -171,7 +222,7 @@ $('density').addEventListener('input', () => {
 });
 $('trail').addEventListener('input', () => {
   config = settings({ ...config, trail: Number($('trail').value) / 10 });
-  view.trail = config.trail; view.view.setTrail(config.trail * 60);
+  view.trail = config.trail;
   renderConfig(); savePrefs();
 });
 for (const layer of Object.keys(config.layers)) $(`layer-${layer}`).addEventListener('change', () => {

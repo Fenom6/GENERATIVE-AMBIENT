@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { AmbientPlanner, DEFAULTS, WORLDS, intervalRatio, settings, midiHz } from '../dist/js/music.js';
+import { baseMidi } from '../dist/vendor/halo/tuning.js';
 
 test('same seed and clock reproduce decisions; different seeds diverge', () => {
   const run = (seed) => {
@@ -30,7 +31,8 @@ test('eight hours of all worlds, tunings, and tonics remain inside voice and pit
       sounding.push(...events);
       assert.ok(sounding.length <= 16, `voice budget: ${sounding.length}`);
       for (const event of events) {
-        const [low, high] = { drone: [36, 48], harmony: [48, 72], sparkle: [72, 96] }[event.layer];
+        const lowRoot = baseMidi(config.tonic);
+        const [low, high] = { drone: [lowRoot, lowRoot + 12], harmony: [48, 72], sparkle: [72, 96] }[event.layer];
         assert.ok(event.hz >= midiHz(low, config.a4) - 1e-6 && event.hz <= midiHz(high, config.a4) + 1e-6, `${event.layer} pitch ${event.hz}`);
         assert.ok(Number.isFinite(event.hz) && event.duration > 0 && event.duration <= 22);
         roots.add(event.rootOffset); total++;
@@ -81,4 +83,11 @@ test('untrusted stored preferences cannot expand generation bounds', () => {
   assert.equal(config.world, DEFAULTS.world); assert.equal(config.volume, 0.5); assert.equal(config.a4, 466);
   assert.equal(config.tonic, 0); assert.equal(config.trail, 3); assert.equal(config.density, 0.2);
   assert.equal(config.minutes, 15); assert.equal(config.layers.drone, true);
+});
+
+test('screen wake is opt-in, while mobile choices survive validated preference loading', () => {
+  assert.equal(settings().keepAwake, false);
+  assert.equal(settings({ keepAwake: 'true' }).keepAwake, false);
+  assert.equal(settings({ keepAwake: true }).keepAwake, true);
+  assert.equal(settings({ mediaPlayback: false }).mediaPlayback, false);
 });

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { AmbientAudio, WATCHDOG_SECONDS } from '../dist/js/audio.js';
+import { AmbientPlanner } from '../dist/js/music.js';
 
 class Param {
   constructor() { this.value = 0; this.events = []; }
@@ -34,6 +35,20 @@ class Context {
   async close() { this.state = 'closed'; }
 }
 const note = (id = 1) => ({ id, layer: 'harmony', hz: 330, duration: 6 });
+
+test('all shifted drone positions remain playable, including the lowest G1 root', async () => {
+  const audio = new AmbientAudio(Context); await audio.open();
+  for (const a4 of [415, 466]) for (const tuning of ['just', 'equal']) for (let tonic = 0; tonic < 12; tonic++) {
+    const planner = new AmbientPlanner({ tonic, tuning, a4 }, 'root');
+    for (const offset of [0, 5, 7]) {
+      planner.rootOffset = offset;
+      assert.equal(audio.play({ ...note(), layer: 'drone', hz: planner.rootHz() }), true);
+      audio.voices.get(1).oscillator.onended();
+    }
+  }
+  assert.throws(() => audio.play({ ...note(), hz: 40 }));
+  await audio.close();
+});
 
 test('closing cancels the watchdog and volume automation, stops voices and disconnects output', async () => {
   const audio = new AmbientAudio(Context); await audio.open(); audio.keepAlive(); audio.play(note());

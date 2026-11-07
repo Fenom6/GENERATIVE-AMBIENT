@@ -1,8 +1,10 @@
-import { settings } from './music.js';
+import { settings, midiHz } from './music.js';
 
 export const MAX_VOICES = 16;
 export const WATCHDOG_SECONDS = 1.4;
 const PEAKS = { drone: 0.28, harmony: 0.12, sparkle: 0.1 };
+// 主音を螺旋の起点へ合わせた場合の最低音：G1、基準音415 Hz。
+const MIN_HZ = midiHz(31, 415);
 
 /** Web Audio：端末内で波を作る。外部の音源や通信には依存しない。 */
 export class AmbientAudio {
@@ -94,7 +96,7 @@ export class AmbientAudio {
     const context = this.context;
     if (this.closed || !context || context.state !== 'running') return false;
     if (this.voices.size >= MAX_VOICES) throw new Error('同時発音数の上限');
-    if (!Object.hasOwn(PEAKS, event.layer) || !Number.isFinite(event.hz) || event.hz < 60 || event.hz > 4400
+    if (!Object.hasOwn(PEAKS, event.layer) || !Number.isFinite(event.hz) || event.hz < MIN_HZ - 1e-7 || event.hz > 4400
       || !Number.isFinite(event.duration) || event.duration < 0.1 || event.duration > 23) throw new RangeError('音の指定が範囲外です');
     const now = context.currentTime;
     const oscillator = context.createOscillator(), envelope = context.createGain(), pan = context.createStereoPanner();
